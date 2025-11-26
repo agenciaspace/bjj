@@ -10,6 +10,7 @@ import { AuthPage } from './pages/AuthPage';
 import { BottomNav } from './components/BottomNav';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 import { useSupabaseSync } from './hooks/useSupabaseSync';
 
@@ -22,11 +23,31 @@ function AppContent() {
     <Layout>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/check-in" element={<CheckInPage />} />
-          <Route path="/timer" element={<TimerPage />} />
-          <Route path="/trainings" element={<TrainingsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/check-in" element={
+            <ProtectedRoute>
+              <CheckInPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/timer" element={
+            <ProtectedRoute>
+              <TimerPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/trainings" element={
+            <ProtectedRoute>
+              <TrainingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
           <Route path="/auth" element={<AuthPage />} />
         </Routes>
       </AnimatePresence>
