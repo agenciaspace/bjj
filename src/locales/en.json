@@ -1,0 +1,147 @@
+{
+    "nav": {
+        "home": "Home",
+        "checkin": "Check-in",
+        "trainings": "Trainings",
+        "profile": "Profile"
+    },
+    "home": {
+        "title": "NEW SESSION",
+        "recentActivity": "Recent Activity",
+        "noNotes": "No notes"
+    },
+    "checkin": {
+        "title": "CHECK-IN",
+        "button": "Check In",
+        "checkedIn": "Checked In!",
+        "streak": "Day Streak",
+        "recentCheckins": "Recent Check-ins",
+        "recorded": "Attendance recorded!"
+    },
+    "trainings": {
+        "title": "TRAININGS",
+        "sessions": "Sessions",
+        "trained": "Trained",
+        "noTrainings": "No trainings logged yet",
+        "startAdding": "Start by adding a session from Home",
+        "min": "min",
+        "monthlyProgress": "Monthly Progress",
+        "deleteConfirm": "Are you sure you want to delete this training?",
+        "edit": "Edit",
+        "updateSession": "Update Session",
+        "cancel": "Cancel",
+        "editTraining": "Edit Training",
+        "delete": "Delete"
+    },
+    "templates": {
+        "title": "Templates",
+        "saveTemplate": "Save as Template",
+        "loadTemplate": "Load Template",
+        "templateName": "Template Name",
+        "confirmDelete": "Delete this template?",
+        "saved": "Template saved!",
+        "loaded": "Template loaded!",
+        "placeholder": "Select a template..."
+    },
+    "modal": {
+        "confirmTitle": "Confirm",
+        "confirmDelete": "Are you sure you want to delete?",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+    },
+    "profile": {
+        "title": "PROFILE",
+        "subtitle": "Your BJJ Journey",
+        "trainingSessions": "Training Sessions",
+        "hoursTrained": "Hours Trained",
+        "totalCheckins": "Total Check-ins",
+        "currentStreak": "Current Streak",
+        "days": "days",
+        "achievements": "Achievements",
+        "comingSoon": "Coming soon...",
+        "belt": "Belt",
+        "degrees": "Degrees",
+        "white": "White",
+        "blue": "Blue",
+        "purple": "Purple",
+        "brown": "Brown",
+        "black": "Black",
+        "name": "Name",
+        "academies": "Academies",
+        "myAcademies": "My Academies",
+        "addAcademy": "Add Academy",
+        "academyPlaceholder": "Academy Name",
+        "selectAcademy": "Select Academy",
+        "mainAcademy": "Main Academy",
+        "setMain": "Set as Main",
+        "noAcademies": "No academies added yet",
+        "dataManagement": "Data Management",
+        "exportData": "Export Data (Backup)",
+        "importData": "Import Data (Restore)",
+        "dataExported": "Data exported successfully!",
+        "dataImported": "Data restored successfully!",
+        "confirmImport": "This will replace all your current data. Are you sure?",
+        "timer": "Timer",
+        "language": "Language"
+    },
+    "timer": {
+        "title": "ROLL TIMER",
+        "round": "Round",
+        "rest": "Rest",
+        "start": "START",
+        "pause": "PAUSE",
+        "reset": "RESET",
+        "rolling": "ROLLING",
+        "resting": "RESTING"
+    },
+    "achievementsList": {
+        "firstStep": "First Step",
+        "firstStepDesc": "Complete your first training",
+        "consistent": "Consistent",
+        "consistentDesc": "Complete 10 trainings",
+        "dedicated": "Dedicated",
+        "dedicatedDesc": "Complete 50 trainings",
+        "master": "Master",
+        "masterDesc": "Complete 100 trainings",
+        "onFire": "On Fire",
+        "onFireDesc": "7 day check-in streak",
+        "earlyBird": "Early Bird",
+        "earlyBirdDesc": "Train before 8am",
+        "nightOwl": "Night Owl",
+        "nightOwlDesc": "Train after 8pm"
+    },
+    "form": {
+        "date": "Date",
+        "duration": "Duration (min)",
+        "techniqueFocus": "Technique Focus",
+        "techniquePlaceholder": "What did you drill?",
+        "notes": "Notes",
+        "notesPlaceholder": "Details on sparring, specific positions...",
+        "logSession": "Log Session",
+        "type": "Training Type",
+        "selectType": "Select type"
+    },
+    "trainingTypes": {
+        "gi": "Gi",
+        "nogi": "No-Gi",
+        "wrestling": "Wrestling",
+        "judo": "Judo",
+        "openMat": "Open Mat",
+        "drill": "Drill",
+        "competition": "Competition",
+        "seminar": "Seminar"
+    },
+    "success": {
+        "oss": "OSS!",
+        "trainingLogged": "Training Logged"
+    },
+    "days": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+    }
+}
