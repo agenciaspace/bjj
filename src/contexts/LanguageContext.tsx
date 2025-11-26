@@ -19,7 +19,19 @@ const translations = {
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [language, setLanguage] = useLocalStorage<Language>('bjj-language', 'pt');
+    const getInitialLanguage = (): Language => {
+        if (typeof window === 'undefined') return 'pt';
+
+        // Check localStorage first (manual override)
+        const saved = window.localStorage.getItem('bjj-language');
+        if (saved) return JSON.parse(saved);
+
+        // Auto-detect from browser
+        const browserLang = navigator.language.toLowerCase();
+        return browserLang.startsWith('pt') ? 'pt' : 'en';
+    };
+
+    const [language, setLanguage] = useLocalStorage<Language>('bjj-language', getInitialLanguage());
 
     const t = (key: string): string => {
         const keys = key.split('.');

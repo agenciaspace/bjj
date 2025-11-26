@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,6 +8,8 @@ import { achievements } from '../data/achievements';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import type { Training, CheckIn } from '../types';
+import { RoleSelector } from '../components/RoleSelector';
+import { AcademyManager } from '../components/AcademyManager';
 
 export const ProfilePage = () => {
     const { t, language, setLanguage } = useLanguage();
@@ -20,10 +22,20 @@ export const ProfilePage = () => {
     const [academies, setAcademies] = useLocalStorage<string[]>('bjj-academies', []);
     const [mainAcademy, setMainAcademy] = useLocalStorage<string>('bjj-main-academy', '');
     const [avatarUrl, setAvatarUrl] = useLocalStorage<string>('bjj-avatar-url', '');
+    const [role, setRole] = useLocalStorage<'student' | 'professor'>('bjj-role', 'student');
     const [uploading, setUploading] = useState(false);
     const [newAcademy, setNewAcademy] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const avatarInputRef = useRef<HTMLInputElement>(null);
+
+    // Sync role with Supabase
+    useEffect(() => {
+        if (user && role) {
+            supabase.from('profiles').update({ role }).eq('id', user.id).then(({ error }) => {
+                if (error) console.error('Error syncing role:', error);
+            });
+        }
+    }, [role, user]);
 
     const totalMinutes = trainings.reduce((acc, training) => acc + parseInt(training.duration || '0'), 0);
     const totalHours = Math.floor(totalMinutes / 60);
@@ -142,7 +154,8 @@ export const ProfilePage = () => {
             academies,
             mainAcademy,
             avatarUrl,
-            language
+            language,
+            role
         };
         const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -175,6 +188,7 @@ export const ProfilePage = () => {
                 if (data.mainAcademy) setMainAcademy(data.mainAcademy);
                 if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
                 if (data.language) setLanguage(data.language);
+                if (data.role) setRole(data.role);
                 alert(t('profile.dataImported'));
             } catch (error) {
                 alert('Error importing data');
@@ -260,6 +274,17 @@ export const ProfilePage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column */}
                 <div className="space-y-8 lg:col-span-1">
+                    {/* Role Selector */}
+                    <div className="bg-white/[0.03] border border-white/[0.08] rounded-[2rem] p-6 space-y-6">
+                        <div className="flex items-center gap-3">
+                            <User className="w-5 h-5 text-accent" />
+                            <h3 className="text-sm font-bold tracking-widest uppercase text-muted-foreground/80">
+                                Role
+                            </h3>
+                        </div>
+                        <RoleSelector selectedRole={role} onSelect={setRole} />
+                    </div>
+
                     {/* Belt System */}
                     <div className="bg-white/[0.03] border border-white/[0.08] rounded-[2rem] p-6 space-y-6">
                         <div className="flex items-center gap-3">
@@ -337,12 +362,17 @@ export const ProfilePage = () => {
 
                 {/* Right Column */}
                 <div className="space-y-8 lg:col-span-2">
-                    {/* Academies */}
+                    {/* Academy Manager (New) */}
+                    <div className="bg-white/[0.03] border border-white/[0.08] rounded-[2rem] p-6">
+                        <AcademyManager />
+                    </div>
+
+                    {/* Academies (Legacy/Manual) */}
                     <div className="bg-white/[0.03] border border-white/[0.08] rounded-[2rem] p-6 space-y-6">
                         <div className="flex items-center gap-3">
                             <MapPin className="w-5 h-5 text-accent" />
                             <h3 className="text-sm font-bold tracking-widest uppercase text-muted-foreground/80">
-                                {t('profile.myAcademies')}
+                                {t('profile.myAcademies')} (Manual List)
                             </h3>
                         </div>
 

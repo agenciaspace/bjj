@@ -28,4 +28,21 @@ export interface Profile {
     mainAcademy?: string;
     avatar_url?: string;
     language: string;
+    role: 'student' | 'professor' | 'owner';
+}
+
+export interface Academy {
+    id: string;
+    name: string;
+    owner_id: string;
+    join_code: string;
+    created_at: string;
+}
+
+export interface AcademyMember {
+    id: string;
+    academy_id: string;
+    user_id: string;
+    status: 'pending' | 'active';
+    created_at: string;
 }
