@@ -7,6 +7,7 @@ import { TimerPage } from './pages/TimerPage';
 import { TrainingsPage } from './pages/TrainingsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AuthPage } from './pages/AuthPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { BottomNav } from './components/BottomNav';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -49,6 +50,7 @@ function AppContent() {
             </ProtectedRoute>
           } />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Routes>
       </AnimatePresence>
       {!isAuthPage && <BottomNav />}
