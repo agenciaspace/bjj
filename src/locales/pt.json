@@ -1,0 +1,147 @@
+{
+    "nav": {
+        "home": "Início",
+        "checkin": "Check-in",
+        "trainings": "Treinos",
+        "profile": "Perfil"
+    },
+    "home": {
+        "title": "NOVA SESSÃO",
+        "recentActivity": "Atividade Recente",
+        "noNotes": "Sem notas"
+    },
+    "checkin": {
+        "title": "CHECK-IN",
+        "button": "Check In",
+        "checkedIn": "Check-in feito!",
+        "streak": "Dias de Sequência",
+        "recentCheckins": "Check-ins Recentes",
+        "recorded": "Presença registrada!"
+    },
+    "trainings": {
+        "title": "TREINOS",
+        "sessions": "Sessões",
+        "trained": "Treinado",
+        "noTrainings": "Nenhum treino registrado ainda",
+        "startAdding": "Comece adicionando uma sessão na página Início",
+        "min": "min",
+        "monthlyProgress": "Progresso Mensal",
+        "deleteConfirm": "Tem certeza que deseja excluir este treino?",
+        "edit": "Editar",
+        "updateSession": "Atualizar Treino",
+        "cancel": "Cancelar",
+        "editTraining": "Editar Treino",
+        "delete": "Excluir"
+    },
+    "templates": {
+        "title": "Templates",
+        "saveTemplate": "Salvar como Template",
+        "loadTemplate": "Carregar Template",
+        "templateName": "Nome do Template",
+        "confirmDelete": "Excluir este template?",
+        "saved": "Template salvo!",
+        "loaded": "Template carregado!",
+        "placeholder": "Selecione um template..."
+    },
+    "modal": {
+        "confirmTitle": "Confirmar",
+        "confirmDelete": "Tem certeza que deseja excluir?",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar"
+    },
+    "profile": {
+        "title": "PERFIL",
+        "subtitle": "Sua Jornada no BJJ",
+        "trainingSessions": "Sessões de Treino",
+        "hoursTrained": "Horas Treinadas",
+        "totalCheckins": "Total de Check-ins",
+        "currentStreak": "Sequência Atual",
+        "days": "dias",
+        "achievements": "Conquistas",
+        "comingSoon": "Em breve...",
+        "belt": "Faixa",
+        "degrees": "Graus",
+        "white": "Branca",
+        "blue": "Azul",
+        "purple": "Roxa",
+        "brown": "Marrom",
+        "black": "Preta",
+        "name": "Nome",
+        "academies": "Academias",
+        "myAcademies": "Minhas Academias",
+        "addAcademy": "Adicionar Academia",
+        "academyPlaceholder": "Nome da Academia",
+        "selectAcademy": "Selecione a Academia",
+        "mainAcademy": "Academia Principal",
+        "setMain": "Definir como Principal",
+        "noAcademies": "Nenhuma academia cadastrada",
+        "dataManagement": "Gerenciar Dados",
+        "exportData": "Exportar Dados (Backup)",
+        "importData": "Importar Dados (Restaurar)",
+        "dataExported": "Dados exportados com sucesso!",
+        "dataImported": "Dados restaurados com sucesso!",
+        "confirmImport": "Isso irá substituir todos os seus dados atuais. Tem certeza?",
+        "timer": "Timer",
+        "language": "Idioma"
+    },
+    "timer": {
+        "title": "TIMER DE ROLA",
+        "round": "Round",
+        "rest": "Descanso",
+        "start": "INICIAR",
+        "pause": "PAUSAR",
+        "reset": "REINICIAR",
+        "rolling": "ROLANDO",
+        "resting": "DESCANSO"
+    },
+    "achievementsList": {
+        "firstStep": "Primeiro Passo",
+        "firstStepDesc": "Complete seu primeiro treino",
+        "consistent": "Consistente",
+        "consistentDesc": "Complete 10 treinos",
+        "dedicated": "Dedicado",
+        "dedicatedDesc": "Complete 50 treinos",
+        "master": "Mestre",
+        "masterDesc": "Complete 100 treinos",
+        "onFire": "On Fire",
+        "onFireDesc": "Sequência de 7 dias de check-in",
+        "earlyBird": "Madrugador",
+        "earlyBirdDesc": "Treino antes das 8am",
+        "nightOwl": "Coruja",
+        "nightOwlDesc": "Treino depois das 8pm"
+    },
+    "form": {
+        "date": "Data",
+        "duration": "Duração (min)",
+        "techniqueFocus": "Foco na Técnica",
+        "techniquePlaceholder": "O que você treinou?",
+        "notes": "Notas",
+        "notesPlaceholder": "Detalhes sobre sparring, posições específicas...",
+        "logSession": "Registrar Sessão",
+        "type": "Tipo de Treino",
+        "selectType": "Selecione o tipo"
+    },
+    "trainingTypes": {
+        "gi": "Kimono (Gi)",
+        "nogi": "Sem Kimono (No-Gi)",
+        "wrestling": "Wrestling",
+        "judo": "Judo",
+        "openMat": "Treino Livre",
+        "drill": "Drill",
+        "competition": "Competição",
+        "seminar": "Seminário"
+    },
+    "success": {
+        "oss": "OSS!",
+        "trainingLogged": "Treino Registrado"
+    },
+    "days": {
+        "monday": "Segunda-feira",
+        "tuesday": "Terça-feira",
+        "wednesday": "Quarta-feira",
+        "thursday": "Quinta-feira",
+        "friday": "Sexta-feira",
+        "saturday": "Sábado",
+        "sunday": "Domingo"
+    }
+}
