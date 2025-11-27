@@ -27,6 +27,9 @@ export const useSupabaseSync = () => {
                 .eq('id', user.id)
                 .single();
 
+            // Get Google Avatar if available
+            const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+
             if (profileData) {
                 // Update local if remote exists
                 if (profileData.name) setLocalName(profileData.name);
@@ -34,21 +37,41 @@ export const useSupabaseSync = () => {
                 if (profileData.degrees !== undefined) setLocalDegrees(profileData.degrees);
                 if (profileData.academies) setLocalAcademies(profileData.academies);
                 if (profileData.main_academy) setLocalMainAcademy(profileData.main_academy);
-                if (profileData.avatar_url) setLocalAvatarUrl(profileData.avatar_url);
+
+                // Avatar Sync Logic - Always sync Google avatar if available
+                if (googleAvatar) {
+                    // Use Google avatar URL directly
+                    setLocalAvatarUrl(googleAvatar);
+                    await supabase.from('profiles').update({ avatar_url: googleAvatar }).eq('id', user.id);
+                } else if (profileData.avatar_url) {
+                    // If no Google avatar, use existing profile avatar
+                    setLocalAvatarUrl(profileData.avatar_url);
+                }
+
                 if (profileData.language) setLocalLanguage(profileData.language);
             } else {
                 // 2. Push to Supabase if remote doesn't exist (first sync)
-                await supabase.from('profiles').upsert({
+                const initialAvatar = localAvatarUrl || googleAvatar || '';
+
+                if (initialAvatar) setLocalAvatarUrl(initialAvatar);
+
+                const { error: upsertError } = await supabase.from('profiles').upsert({
                     id: user.id,
-                    name: localName,
+                    name: localName || user.user_metadata?.full_name || user.user_metadata?.name || '',
                     belt: localBelt,
                     degrees: localDegrees,
                     academies: localAcademies,
                     main_academy: localMainAcademy,
-                    avatar_url: localAvatarUrl,
+                    avatar_url: initialAvatar,
                     language: localLanguage,
+                    role: 'student', // Add default role
                     updated_at: new Date().toISOString()
                 });
+
+                if (upsertError) {
+                    console.error('[Profile Upsert] Error creating profile:', upsertError);
+                    alert(`Failed to create profile: ${upsertError.message}`);
+                }
             }
 
             const { data: trainingsData } = await supabase
