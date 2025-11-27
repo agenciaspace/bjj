@@ -205,6 +205,22 @@ export const ProfilePage = () => {
         { id: 'black', color: 'bg-black text-white border-gray-800', label: 'black' },
     ];
 
+    const [imgError, setImgError] = useState(false);
+    const googleAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+    const displayAvatar = !imgError && (avatarUrl || googleAvatar);
+
+    useEffect(() => {
+        setImgError(false);
+        if (avatarUrl || googleAvatar) {
+            const url = avatarUrl || googleAvatar;
+            const img = new Image();
+            img.referrerPolicy = 'no-referrer';
+            img.src = url;
+            img.onload = () => setImgError(false);
+            img.onerror = () => setImgError(true);
+        }
+    }, [avatarUrl, googleAvatar]);
+
     return (
         <div className="space-y-12 pt-8">
             {/* Header */}
@@ -220,8 +236,13 @@ export const ProfilePage = () => {
 
                 <div className="relative group">
                     <div className="w-20 h-20 rounded-full bg-white/10 overflow-hidden border-2 border-white/20 group-hover:border-accent transition-colors">
-                        {avatarUrl ? (
-                            <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        {displayAvatar ? (
+                            <img
+                                src={displayAvatar}
+                                alt="User Avatar"
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                            />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-muted-foreground">
                                 {name ? name.charAt(0).toUpperCase() : <User className="w-8 h-8" />}
