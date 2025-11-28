@@ -180,5 +180,40 @@
         "cancel": "Cancelar",
         "confirmPromote": "Confirmar Graduação",
         "promotionSuccess": "Aluno graduado com sucesso!"
+    },
+    "admin": {
+        "title": "Painel de Administração",
+        "overview": "Visão Geral",
+        "users": "Usuários",
+        "academies": "Academias",
+        "members": "Membros",
+        "memberships": "Membros",
+        "totalUsers": "Total de Usuários",
+        "totalAcademies": "Academias",
+        "search": "Buscar...",
+        "refresh": "Atualizar",
+        "student": "Aluno",
+        "owner": "Proprietário",
+        "code": "Código",
+        "totalTrainings": "Total de Treinos",
+        "totalHours": "Horas Totais",
+        "avgPerTraining": "Média por Treino",
+        "recentTrainings": "Treinos Recentes",
+        "backToAdmin": "Voltar ao Admin",
+        "noTrainings": "Nenhum treino registrado ainda",
+        "noMembers": "Nenhum membro ativo ainda"
+    },
+    "coach": {
+        "title": "AI Coach",
+        "subtitle": "Powered by Gemini",
+        "ask": "Pedir Conselho",
+        "analyzing": "Analisando seu jogo...",
+        "tryAgain": "Tentar Novamente",
+        "suggestedTechniques": "Técnicas Sugeridas",
+        "newSuggestion": "Nova Sugestão",
+        "placeholder": "Obtenha conselhos de treino personalizados baseados no seu histórico e faixa.",
+        "errorApiKey": "Chave da API Gemini inválida. Verifique sua configuração.",
+        "errorQuota": "Cota da API Gemini excedida. Tente novamente mais tarde.",
+        "errorGeneric": "Falha ao conectar com o AI Coach. Verifique sua chave de API."
     }
 }

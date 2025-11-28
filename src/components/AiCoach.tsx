@@ -22,9 +22,16 @@ export const AiCoach: React.FC = () => {
         try {
             const result = await getTrainingSuggestion(trainings, belt, mainAcademy);
             setSuggestion(result);
-        } catch (err) {
-            console.error(err);
-            setError('Failed to connect to AI Coach. Check your API Key.');
+        } catch (err: any) {
+            console.error('AI Coach Error:', err);
+            // More specific error messages
+            if (err.message?.includes('API key') || err.message?.includes('Invalid')) {
+                setError(t('coach.errorApiKey'));
+            } else if (err.message?.includes('quota')) {
+                setError(t('coach.errorQuota'));
+            } else {
+                setError(t('coach.errorGeneric'));
+            }
         } finally {
             setLoading(false);
         }
@@ -42,8 +49,8 @@ export const AiCoach: React.FC = () => {
                             <Brain className="w-6 h-6" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-black tracking-tight text-white">AI Coach</h2>
-                            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Gemini Powered</p>
+                            <h2 className="text-lg font-black tracking-tight text-white">{t('coach.title')}</h2>
+                            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('coach.subtitle')}</p>
                         </div>
                     </div>
                     {!suggestion && !loading && (
@@ -66,7 +73,7 @@ export const AiCoach: React.FC = () => {
                             className="flex flex-col items-center justify-center py-8 space-y-4"
                         >
                             <Loader2 className="w-8 h-8 text-accent animate-spin" />
-                            <p className="text-xs text-muted-foreground animate-pulse">Analyzing your game...</p>
+                            <p className="text-xs text-muted-foreground animate-pulse">{t('coach.analyzing')}</p>
                         </motion.div>
                     ) : error ? (
                         <motion.div
@@ -81,7 +88,7 @@ export const AiCoach: React.FC = () => {
                                     onClick={handleGetAdvice}
                                     className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
                                 >
-                                    Try Again
+                                    {t('coach.tryAgain')}
                                 </button>
                             </div>
                         </motion.div>
@@ -101,7 +108,7 @@ export const AiCoach: React.FC = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <p className="text-[10px] uppercase tracking-widest text-accent font-bold">Suggested Techniques</p>
+                                <p className="text-[10px] uppercase tracking-widest text-accent font-bold">{t('coach.suggestedTechniques')}</p>
                                 <div className="flex flex-wrap gap-2">
                                     {suggestion.suggestedTechniques.map((tech, i) => (
                                         <span
@@ -119,13 +126,13 @@ export const AiCoach: React.FC = () => {
                                 className="w-full mt-4 py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-white transition-colors border-t border-white/5"
                             >
                                 <RefreshCw className="w-3 h-3" />
-                                New Suggestion
+                                {t('coach.newSuggestion')}
                             </button>
                         </motion.div>
                     ) : (
                         <div className="text-center py-6 px-4 border border-dashed border-white/10 rounded-xl">
                             <p className="text-sm text-muted-foreground/60">
-                                Get personalized training advice based on your history and belt level.
+                                {t('coach.placeholder')}
                             </p>
                         </div>
                     )}

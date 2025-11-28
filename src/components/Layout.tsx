@@ -1,6 +1,7 @@
 import { User } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { FloatingAiCoach } from './FloatingAiCoach';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -61,6 +62,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <footer className="w-full max-w-7xl py-8 text-center text-[10px] uppercase tracking-widest text-muted-foreground opacity-40 mt-auto pb-safe hover:opacity-60 transition-opacity">
                 <p>© {new Date().getFullYear()} MY-BJJ</p>
             </footer>
+
+            {/* Floating AI Coach */}
+            <FloatingAiCoach />
         </div>
     );
 };

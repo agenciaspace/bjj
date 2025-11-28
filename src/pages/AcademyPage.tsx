@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Users, Award, ArrowLeft, Shield, UserCheck } from 'lucide-react';
+import { translateBelt, getBeltColor } from '../lib/beltUtils';
 import type { Academy, Profile } from '../types';
 
 interface AcademyMember {
@@ -66,16 +67,7 @@ export default function AcademyPage() {
         }
     };
 
-    const getBeltColor = (belt: string) => {
-        const colors: Record<string, string> = {
-            white: 'bg-white text-black',
-            blue: 'bg-blue-600',
-            purple: 'bg-purple-600',
-            brown: 'bg-amber-800',
-            black: 'bg-black'
-        };
-        return colors[belt] || 'bg-gray-500';
-    };
+
 
     if (loading) {
         return (
@@ -162,7 +154,7 @@ export default function AcademyPage() {
                                 <Award className={`w-8 h-8 ${getBeltColor(belt)} rounded-full p-1`} />
                                 <div>
                                     <p className="text-2xl font-black text-white">{count}</p>
-                                    <p className="text-xs text-muted-foreground capitalize">Faixa {belt}</p>
+                                    <p className="text-xs text-muted-foreground">Faixa {translateBelt(belt)}</p>
                                 </div>
                             </div>
                         </div>
@@ -199,7 +191,7 @@ export default function AcademyPage() {
                                             <p className="font-bold text-white">{profile.name}</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${getBeltColor(profile.belt)}`}>
-                                                    {profile.belt}
+                                                    {translateBelt(profile.belt)}
                                                 </span>
                                                 {profile.degrees > 0 && (
                                                     <span className="text-xs text-muted-foreground">

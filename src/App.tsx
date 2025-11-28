@@ -8,6 +8,7 @@ import { TrainingsPage } from './pages/TrainingsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import AcademyPage from './pages/AcademyPage';
+import UserDetailsPage from './pages/UserDetailsPage';
 import { AuthPage } from './pages/AuthPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { BottomNav } from './components/BottomNav';
@@ -56,6 +57,13 @@ function AppContent() {
             <ProtectedRoute>
               <AdminGuard>
                 <AdminPage />
+              </AdminGuard>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/user/:id" element={
+            <ProtectedRoute>
+              <AdminGuard>
+                <UserDetailsPage />
               </AdminGuard>
             </ProtectedRoute>
           } />

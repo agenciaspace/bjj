@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { TrainingForm } from '../components/TrainingForm';
-import { AiCoach } from '../components/AiCoach';
 import { SuccessAnimation } from '../components/SuccessAnimation';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -33,17 +32,10 @@ export const HomePage = () => {
                     <h2 className="text-5xl md:text-6xl font-black mb-14 tracking-[-0.02em] text-center bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,255,0.1)] pt-8">
                         {t('home.title')}
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 gap-8">
                         {/* Training Form */}
-                        <div className="md:col-span-2 lg:col-span-2">
+                        <div>
                             <TrainingForm onSubmit={handleAddTraining} />
-                        </div>
-
-                        {/* AI Coach & Stats Column */}
-                        <div className="space-y-8">
-                            <AiCoach />
-
-                            {/* Quick Stats (Optional - could move here later) */}
                         </div>
                     </div>
                 </section>
