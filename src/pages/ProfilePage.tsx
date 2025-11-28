@@ -272,6 +272,15 @@ export const ProfilePage = () => {
                     >
                         <span className="font-bold text-xs">{language.toUpperCase()}</span>
                     </button>
+                    {user?.email === 'leonhatori@gmail.com' && (
+                        <Link
+                            to="/admin"
+                            className="p-3 rounded-full bg-accent/10 hover:bg-accent/20 text-accent transition-colors"
+                            title="Admin Panel"
+                        >
+                            <Shield className="w-5 h-5" />
+                        </Link>
+                    )}
                     {user ? (
                         <button
                             onClick={signOut}

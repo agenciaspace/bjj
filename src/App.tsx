@@ -6,12 +6,15 @@ import { CheckInPage } from './pages/CheckInPage';
 import { TimerPage } from './pages/TimerPage';
 import { TrainingsPage } from './pages/TrainingsPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { AdminPage } from './pages/AdminPage';
+import AcademyPage from './pages/AcademyPage';
 import { AuthPage } from './pages/AuthPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { BottomNav } from './components/BottomNav';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminGuard } from './components/AdminGuard';
 
 import { useSupabaseSync } from './hooks/useSupabaseSync';
 
@@ -47,6 +50,18 @@ function AppContent() {
           <Route path="/profile" element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminGuard>
+                <AdminPage />
+              </AdminGuard>
+            </ProtectedRoute>
+          } />
+          <Route path="/academy/:id" element={
+            <ProtectedRoute>
+              <AcademyPage />
             </ProtectedRoute>
           } />
           <Route path="/auth" element={<AuthPage />} />
