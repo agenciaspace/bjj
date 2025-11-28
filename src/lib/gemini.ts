@@ -27,8 +27,8 @@ export const getTrainingSuggestion = async (
         throw new Error('Gemini API Key not configured');
     }
 
-    // Use gemini-1.5-flash for faster and more reliable responses
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    // Use gemini-1.5-flash-latest (alias for latest flash model)
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
     // Prepare context from history
     const recentTrainings = trainings
@@ -59,22 +59,38 @@ export const getTrainingSuggestion = async (
     `;
 
     try {
+        console.log('🤖 Gemini API Request:', {
+            model: 'gemini-pro',
+            trainingsCount: trainings.length,
+            belt,
+            mainAcademy
+        });
+
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
+
+        console.log('✅ Gemini API Response:', text.substring(0, 200));
 
         // Clean up markdown code blocks if present
         const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
         return JSON.parse(jsonStr) as AiSuggestion;
     } catch (error: any) {
-        console.error('Gemini API Error:', error);
+        console.error('❌ Gemini API Error Details:', {
+            message: error.message,
+            stack: error.stack,
+            fullError: error
+        });
+
         // Improve error message for user
-        if (error.message?.includes('API key')) {
-            throw new Error('Invalid Gemini API Key. Please check your configuration.');
+        if (error.message?.includes('API key') || error.message?.includes('Invalid')) {
+            throw new Error('Chave da API Gemini inválida. Verifique sua configuração.');
         } else if (error.message?.includes('quota')) {
-            throw new Error('Gemini API quota exceeded. Please try again later.');
+            throw new Error('Cota da API Gemini excedida. Tente novamente mais tarde.');
+        } else if (error.message?.includes('404') || error.message?.includes('not found')) {
+            throw new Error('Modelo Gemini não encontrado. Verifique a configuração da API.');
         }
-        throw new Error('Failed to get suggestion from AI Coach. Please try again.');
+        throw new Error(`Erro ao gerar sugestão: ${error.message || 'Erro desconhecido'}`);
     }
 };

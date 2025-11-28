@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Users, Building2, UserCheck, Search, Shield, RefreshCw } from 'lucide-react';
+import { translateBelt } from '../lib/beltUtils';
 import type { Profile, Academy } from '../types';
 
 interface AcademyMember {
@@ -15,6 +17,7 @@ interface AcademyMember {
 
 export const AdminPage = () => {
     const [activeTab, setActiveTab] = useState<'users' | 'academies' | 'members'>('users');
+    const navigate = useNavigate();
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [academies, setAcademies] = useState<Academy[]>([]);
     const [members, setMembers] = useState<AcademyMember[]>([]);
@@ -119,7 +122,7 @@ export const AdminPage = () => {
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
                     <UserCheck className="w-6 h-6 text-accent mb-2" />
                     <p className="text-2xl font-black">{members.length}</p>
-                    <p className="text-xs text-muted-foreground">Memberships</p>
+                    <p className="text-xs text-muted-foreground">Membros</p>
                 </div>
             </div>
 
@@ -140,7 +143,7 @@ export const AdminPage = () => {
                     className="px-4 py-2 bg-accent text-black rounded-xl hover:bg-accent/90 transition-colors font-medium flex items-center gap-2"
                 >
                     <RefreshCw className="w-5 h-5" />
-                    Refresh
+                    Atualizar
                 </button>
             </div>
 
@@ -171,7 +174,7 @@ export const AdminPage = () => {
                         : 'text-muted-foreground hover:text-white'
                         }`}
                 >
-                    Members ({members.length})
+                    Membros ({members.length})
                 </button>
             </div>
 
@@ -182,7 +185,8 @@ export const AdminPage = () => {
                         {filteredProfiles.map((profile) => (
                             <div
                                 key={profile.id}
-                                className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-colors"
+                                onClick={() => navigate(`/admin/user/${profile.id}`)}
+                                className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer"
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full bg-white/10 overflow-hidden flex-shrink-0">
@@ -198,7 +202,7 @@ export const AdminPage = () => {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-bold text-accent capitalize">{profile.role}</p>
-                                        <p className="text-xs text-muted-foreground capitalize">{profile.belt} • {profile.degrees}°</p>
+                                        <p className="text-xs text-muted-foreground capitalize">{translateBelt(profile.belt)} • {profile.degrees}°</p>
                                     </div>
                                 </div>
                             </div>
@@ -240,7 +244,7 @@ export const AdminPage = () => {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-lg font-black text-accent">{memberCount}</p>
-                                            <p className="text-xs text-muted-foreground">Members</p>
+                                            <p className="text-xs text-muted-foreground">Membros</p>
                                         </div>
                                     </div>
                                 </div>
