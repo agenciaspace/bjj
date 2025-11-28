@@ -1,73 +1,219 @@
-# React + TypeScript + Vite
+# My BJJ - Jiu-Jitsu Progress Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, Progressive Web App (PWA) for tracking your Brazilian Jiu-Jitsu journey. Built with React, TypeScript, Tailwind CSS, and Supabase.
 
-Currently, two official plugins are available:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/React-18-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38B2AC)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+### 🥋 Core Features
+- **Training Log**: Track your training sessions with notes, techniques, and duration
+- **Progress Tracking**: Monitor your belt progression and degrees
+- **Academy Management**: Join academies, manage memberships, and view fellow students
+- **Check-in System**: Simple check-in tracking for academy attendance
+- **Timer de Rola**: Built-in rolling timer to track your sparring sessions
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🤖 AI-Powered
+- **AI Coach**: Personalized training suggestions powered by Google's Gemini AI
+- Analyzes your training history and gives tailored recommendations
 
-## Expanding the ESLint configuration
+### 👥 Multi-Academy Support
+- Join multiple academies
+- Track which academy each training session belongs to
+- Academy owners can manage members and approve join requests
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 📱 Progressive Web App
+- Install on mobile devices
+- Works offline with local-first architecture
+- Automatic sync with Supabase backend
+- Fast, responsive interface
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 🔒 Secure
+- Row Level Security (RLS) policies for data isolation
+- Google OAuth authentication
+- Profile photos automatically synced from Google account
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 👨‍💼 Admin Dashboard
+- Comprehensive view of all users, academies, and memberships
+- Search and filter capabilities
+- Real-time statistics
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🚀 Tech Stack
+
+### Frontend
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling
+- **Lucide React** - Icons
+- **VitePWA** - Progressive Web App capabilities
+
+### Backend
+- **Supabase** - Backend-as-a-Service
+  - PostgreSQL database
+  - Authentication
+  - Real-time subscriptions
+  - Row Level Security
+
+### AI
+- **Google Gemini 1.5 Flash** - AI training suggestions
+
+## 📦 Installation
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+- Google Cloud account (for Gemini AI)
+
+### Setup
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/my-bjj.git
+cd my-bjj
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. **Install dependencies**
+```bash
+npm install
 ```
+
+3. **Environment Variables**
+
+Create a `.env` file:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_GEMINI_API_KEY=your_gemini_api_key
+```
+
+4. **Database Setup**
+
+Run the following scripts in your Supabase SQL Editor (in order):
+
+```bash
+# 1. Setup database schema (create tables)
+# See Supabase dashboard for schema
+
+# 2. Enable production RLS policies
+production-rls-migration.sql
+
+# 3. (Optional) Test RLS policies
+test-production-rls.sql
+```
+
+5. **Run Development Server**
+```bash
+npm run dev
+```
+
+6. **Build for Production**
+```bash
+npm run build
+```
+
+## 🗄️ Database Schema
+
+### Main Tables
+- **profiles** - User profiles with belt, degrees, role
+- **academies** - Jiu-Jitsu academies/gyms
+- **academy_members** - Membership relationships
+- **trainings** - Training session logs
+
+### Row Level Security
+The app uses comprehensive RLS policies to ensure:
+- Users can only see/edit their own data
+- Academy owners can manage their academy
+- Profiles and academies are publicly browsable
+- Training logs remain private
+
+## 🎨 Features in Detail
+
+### Local-First Architecture
+The app uses a local-first approach:
+- Data is stored in localStorage for instant access
+- Changes sync to Supabase in the background
+- Works offline, syncs when online
+- No loading states for better UX
+
+### AI Coach
+Powered by Google's Gemini 1.5 Flash, the AI coach:
+- Analyzes your recent training history
+- Considers your belt level
+- Suggests specific techniques to focus on
+- Provides personalized motivation
+
+### Admin Dashboard
+Accessible only to admin users (configurable via email):
+- View all users with belt progression
+- Manage academies and memberships
+- Search and filter functionality
+- Real-time member counts
+
+## 🚢 Deployment
+
+### Vercel (Recommended)
+1. Push to GitHub
+2. Import repository in Vercel
+3. Add environment variables
+4. Deploy!
+
+### Manual Deploy
+```bash
+npm run build
+# Upload the dist/ folder to your hosting provider
+```
+
+## 📝 Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_SUPABASE_URL` | Your Supabase project URL | ✅ Yes |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ Yes |
+| `VITE_GEMINI_API_KEY` | Google Gemini API key | ⚠️ Optional (AI features) |
+
+## 🛠️ Development
+
+### Project Structure
+```
+my-bjj/
+├── src/
+│   ├── components/     # Reusable UI components
+│   ├── contexts/       # React contexts (Auth, Language)
+│   ├── hooks/          # Custom hooks
+│   ├── lib/            # Utility libraries (Supabase, Gemini)
+│   ├── pages/          # Page components
+│   ├── types/          # TypeScript types
+│   └── locales/        # i18n translations
+├── public/             # Static assets
+└── sql/                # Database migration scripts
+```
+
+### Key Files
+- `useLocalStorage.ts` - Local-first data management
+- `useSupabaseSync.ts` - Sync logic with Supabase
+- `production-rls-migration.sql` - Production RLS policies
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT License - feel free to use this project for personal or commercial purposes.
+
+## 🙏 Acknowledgments
+
+- Built with [Vite](https://vitejs.dev/)
+- Styled with [Tailwind CSS](https://tailwindcss.com/)
+- Backend by [Supabase](https://supabase.com/)
+- AI by [Google Gemini](https://ai.google.dev/)
+- Icons by [Lucide](https://lucide.dev/)
+
+---
+
+Made with ❤️ for the Jiu-Jitsu community

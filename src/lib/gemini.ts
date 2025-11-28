@@ -27,7 +27,8 @@ export const getTrainingSuggestion = async (
         throw new Error('Gemini API Key not configured');
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    // Use gemini-1.5-flash for faster and more reliable responses
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // Prepare context from history
     const recentTrainings = trainings
@@ -66,8 +67,14 @@ export const getTrainingSuggestion = async (
         const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
         return JSON.parse(jsonStr) as AiSuggestion;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Gemini API Error:', error);
-        throw new Error('Failed to get suggestion from AI Coach');
+        // Improve error message for user
+        if (error.message?.includes('API key')) {
+            throw new Error('Invalid Gemini API Key. Please check your configuration.');
+        } else if (error.message?.includes('quota')) {
+            throw new Error('Gemini API quota exceeded. Please try again later.');
+        }
+        throw new Error('Failed to get suggestion from AI Coach. Please try again.');
     }
 };
