@@ -27,10 +27,15 @@ export interface MatchResult {
  */
 export async function isDeepFaceAvailable(): Promise<boolean> {
     try {
-        const response = await fetch(`${DEEPFACE_API_URL}/`, { 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // Increase timeout to 10 seconds
+
+        const response = await fetch(`${DEEPFACE_API_URL}/`, {
             method: 'GET',
-            signal: AbortSignal.timeout(3000)
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
         return response.ok;
     } catch {
         return false;
@@ -44,17 +49,31 @@ export async function analyzeImage(imageBlob: Blob): Promise<AnalyzeResponse> {
     const formData = new FormData();
     formData.append('file', imageBlob, 'image.jpg');
 
-    const response = await fetch(`${DEEPFACE_API_URL}/analyze`, {
-        method: 'POST',
-        body: formData,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for image processing
 
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`DeepFace analysis failed: ${error}`);
+    try {
+        const response = await fetch(`${DEEPFACE_API_URL}/analyze`, {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`DeepFace analysis failed: ${response.status} - ${errorText}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            throw new Error('Connection timeout or network error. Please check your connection and try again.');
+        }
+        throw error;
     }
-
-    return response.json();
 }
 
 /**

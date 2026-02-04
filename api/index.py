@@ -10,6 +10,7 @@ import uvicorn
 import shutil
 import tempfile
 
+# Initialize FastAPI app
 app = FastAPI(title="BJJ DeepFace API")
 
 # Enable CORS for frontend
@@ -147,7 +148,8 @@ async def verify_faces(
 import asyncio
 from mangum import Mangum
 
-handler = Mangum(app)
+# Add timeout configuration for Vercel
+handler = Mangum(app, lifespan="off")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

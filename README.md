@@ -160,10 +160,28 @@ Accessible only to admin users (configurable via email):
 ## 🚢 Deployment
 
 ### Vercel (Recommended)
+
+#### Frontend Deployment
 1. Push to GitHub
 2. Import repository in Vercel
-3. Add environment variables
+3. Add environment variables:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+   - `VITE_GEMINI_API_KEY`: Your Google Gemini API key (optional)
+   - `VITE_DEEPFACE_API_URL`: Your deployed API URL (e.g., `https://your-api-project-name.vercel.app/api`)
 4. Deploy!
+
+#### Backend API Deployment
+1. Create a new Vercel project for the backend
+2. Import the same repository
+3. Change the Root Directory to `/api` in the Settings
+4. Deploy - this will create your facial recognition API endpoint
+
+#### Troubleshooting Common Issues
+- **Timeout errors**: Increase timeout values in `src/lib/deepFaceService.ts`
+- **Cold start delays**: The first API call may be slow as models load
+- **Memory limits**: Vercel's free tier has limited memory; consider upgrading for heavy ML operations
+- **Deployment fails**: Check that all dependencies in `backend/requirements.txt` are compatible with Vercel
 
 ### Manual Deploy
 ```bash
