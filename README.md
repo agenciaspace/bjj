@@ -67,9 +67,9 @@ A modern, Progressive Web App (PWA) for tracking your Brazilian Jiu-Jitsu journe
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
-- Supabase account
+- Supabase account (with API key)
 - Google Cloud account (for Gemini AI)
 
 ### Setup
@@ -90,9 +90,14 @@ npm install
 Create a `.env` file:
 ```env
 VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_API_KEY=your_supabase_api_key
 VITE_GEMINI_API_KEY=your_gemini_api_key
 ```
+
+To get your Supabase API key:
+1. Go to your Supabase dashboard
+2. Navigate to Project Settings → API
+3. Use either the "anon" key or create a new API key with appropriate permissions
 
 4. **Database Setup**
 
@@ -166,7 +171,7 @@ Accessible only to admin users (configurable via email):
 2. Import repository in Vercel
 3. Add environment variables:
    - `VITE_SUPABASE_URL`: Your Supabase project URL
-   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+   - `VITE_SUPABASE_API_KEY`: Your Supabase API key
    - `VITE_GEMINI_API_KEY`: Your Google Gemini API key (optional)
    - `VITE_DEEPFACE_API_URL`: Your deployed API URL (e.g., `https://your-api-project-name.vercel.app/api`)
 4. Deploy!
@@ -194,7 +199,7 @@ npm run build
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `VITE_SUPABASE_URL` | Your Supabase project URL | ✅ Yes |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ Yes |
+| `VITE_SUPABASE_API_KEY` | Supabase API key | ✅ Yes |
 | `VITE_GEMINI_API_KEY` | Google Gemini API key | ⚠️ Optional (AI features) |
 
 ## 🛠️ Development

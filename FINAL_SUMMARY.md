@@ -121,7 +121,7 @@ All planned features have been implemented:
    
    # Add environment variables in Vercel dashboard
    # - VITE_SUPABASE_URL
-   # - VITE_SUPABASE_ANON_KEY
+   # - VITE_SUPABASE_API_KEY
    # - VITE_GEMINI_API_KEY
    ```
 

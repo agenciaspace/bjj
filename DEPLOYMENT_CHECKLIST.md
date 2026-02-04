@@ -7,7 +7,7 @@ Use this checklist to ensure everything is properly configured before deploying 
 ### Environment Configuration
 - [ ] `.env` file contains all required variables
   - [ ] `VITE_SUPABASE_URL` is set to production URL
-  - [ ] `VITE_SUPABASE_ANON_KEY` is set to production key
+  - [ ] `VITE_SUPABASE_API_KEY` is set to production key
   - [ ] `VITE_GEMINI_API_KEY` is set (optional, for AI features)
 - [ ] `.env` is in `.gitignore` (never commit secrets!)
 - [ ] All sensitive data removed from code
@@ -59,7 +59,7 @@ Use this checklist to ensure everything is properly configured before deploying 
 - [ ] Rewrites are set up properly
 - [ ] Environment variables are configured in Vercel dashboard:
   - [ ] `VITE_SUPABASE_URL`
-  - [ ] `VITE_SUPABASE_ANON_KEY`
+  - [ ] `VITE_SUPABASE_API_KEY`
   - [ ] `VITE_GEMINI_API_KEY` (optional)
 
 ## Feature Testing

@@ -9,7 +9,7 @@ This guide ensures the application is fully configured for use by academies and 
 Current `.env` file should contain:
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url_here
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+VITE_SUPABASE_API_KEY=your_supabase_api_key_here
 VITE_GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
@@ -228,7 +228,7 @@ vercel --prod
 #### Environment Variables in Vercel:
 Add these in Vercel dashboard:
 - `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_API_KEY`
 - `VITE_GEMINI_API_KEY`
 
 #### Backend (Optional):
