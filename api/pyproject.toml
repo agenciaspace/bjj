@@ -6,15 +6,17 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bjj-deepface-api"
+name = "bjj-face-api"
 version = "1.0.0"
 requires-python = ">=3.9"
 dependencies = [
     "fastapi==0.115.0",
     "uvicorn==0.32.0",
-    "deepface==0.0.79",
+    "insightface>=0.7.3",
+    "onnxruntime>=1.16.0",
     "python-multipart==0.0.20",
     "opencv-python-headless==4.10.0.84",
     "mangum==0.19.0",
     "numpy==1.26.0",
+    "scipy>=1.11.0",
 ]
