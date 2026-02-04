@@ -41,3 +41,4 @@ force-*.sql
 backend/venv/
 .vercel
 .env*.local
+.env

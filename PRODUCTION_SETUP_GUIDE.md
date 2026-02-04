@@ -8,9 +8,9 @@ This guide ensures the application is fully configured for use by academies and 
 
 Current `.env` file should contain:
 ```env
-VITE_SUPABASE_URL=https://qdimprppbsmzqcqhykjk.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkaW1wcnBwYnNtenFjcWh5a2prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxMDg4MTgsImV4cCI6MjA3OTY4NDgxOH0.OhE9rft1Q3vAU5OrG5p4bkLB9wZVriGTXw_c8CcdOYM
-VITE_GEMINI_API_KEY=AIzaSyCdPjG84f7eP9fAxdxj-unJYyCB5rPOiEA
+VITE_SUPABASE_URL=your_supabase_project_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 **Status**: ✅ All required variables are present
