@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BJJ Face Recognition Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        h1 {
+            color: #00ffff;
+            margin: 0 0 20px 0;
+        }
+        h2 {
+            color: #00ffff;
+            font-size: 18px;
+            margin: 0 0 15px 0;
+        }
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+        .image-entry {
+            background: #222;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #444;
+        }
+        .image-entry h3 {
+            margin-top: 0;
+            color: #00ffff;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .image-entry-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        #imagesContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #00dddd;
+        }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 12px;
+            background: #333;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .status.loading {
+            color: #ffaa00;
+        }
+        .status.success {
+            color: #00ff00;
+        }
+        .status.error {
+            color: #ff5555;
+        }
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .face-card {
+            background: #333;
+            border: 2px solid #00ffff;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .face-card .name {
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+        .face-card .confidence {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        .face-card input {
+            width: 100%;
+            padding: 5px;
+            background: #444;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            box-sizing: border-box;
+        }
+        .face-card button {
+            padding: 5px 10px;
+            font-size: 12px;
+            width: 100%;
+        }
+        .gallery-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .gallery-item {
+            background: #2a2a2a;
+            border: 1px solid #00ffff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .gallery-item button {
+            background: none;
+            color: #ff5555;
+            padding: 0;
+            font-size: 14px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-label {
+            display: inline-block;
+            background: #444;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .file-label:hover {
+            background: #555;
+        }
+        .info {
+            background: #2a4a5a;
+            border-left: 4px solid #00ffff;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥋 BJJ Face Recognition Test</h1>
+        
+        <div class="section">
+            <h2>1. Load Test Image</h2>
+            <div class="info">
+                📸 Upload the class photo to test face detection
+            </div>
+            <div class="controls">
+                <label for="imageInput" class="file-label">
+                    Upload Photos
+                </label>
+                <input type="file" id="imageInput" accept="image/*" multiple>
+                <button id="loadTestPhotosBtn" style="background: #ff9900;">Load Test Photos (2)</button>
+                <button id="rotateBtn">Rotate 90°</button>
+            </div>
+            <div class="controls" style="margin-top: 10px;">
+                <label style="font-size: 14px; color: #aaa;">Matching Threshold (Lower is stricter): </label>
+                <input type="range" id="thresholdSlider" min="0.1" max="0.5" step="0.025" value="0.25" style="width: 200px;">
+                <span id="thresholdValue">0.25</span>
+                <label style="margin-left: 20px;">Backend: </label>
+                <select id="engineSelect" style="background: #444; color: #fff; padding: 5px; border-radius: 4px; border: 1px solid #555;">
+                    <option value="browser">face-api.js (Browser)</option>
+                    <option value="deepface" selected>DeepFace (Server)</option>
+                </select>
+            </div>
+            <div id="loadStatus" class="status" style="display: none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>2. Loaded Photos</h2>
+            <div id="imagesContainer">
+                <p style="color: #666; text-align: center; padding: 40px;">No images uploaded yet. Use the button above to add photos.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. Recognition Gallery</h2>
+            <div class="info">
+                👥 Registered faces that will be recognized in new photos
+            </div>
+            <div id="galleryList" class="gallery-list">
+                <!-- Gallery items will appear here -->
+            </div>
+            <div class="controls" style="margin-top: 15px;">
+                <button id="clearGalleryBtn" style="background: #ff5555; color: #fff;">Clear Gallery</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. Test Controls</h2>
+            <div class="controls">
+                <button id="detectBtn" disabled>Detect Faces</button>
+                <button id="clearBtn">Clear</button>
+            </div>
+            <div id="stats" style="margin-top: 15px; font-family: monospace; font-size: 14px;"></div>
+        </div>
+    </div>
+
+    <!-- Load face-api.js from CDN (compatible versions) -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <script>
+        let modelsLoaded = false;
+        let faceGallery = JSON.parse(localStorage.getItem('bjj_face_gallery') || '[]');
+        let loadedImages = []; // Array of { id, img, canvas, overlay, ctx, overlayCtx, results, status, detections }
+
+        // DOM elements
+        const imageInput = document.getElementById('imageInput');
+        const imagesContainer = document.getElementById('imagesContainer');
+        const detectBtn = document.getElementById('detectBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loadTestPhotosBtn = document.getElementById('loadTestPhotosBtn');
+        const rotateBtn = document.getElementById('rotateBtn');
+        const thresholdSlider = document.getElementById('thresholdSlider');
+        const thresholdValue = document.getElementById('thresholdValue');
+        const engineSelect = document.getElementById('engineSelect');
+        const loadStatus = document.getElementById('loadStatus');
+        const stats = document.getElementById('stats');
+        const galleryList = document.getElementById('galleryList');
+        const clearGalleryBtn = document.getElementById('clearGalleryBtn');
+
+        thresholdSlider.addEventListener('input', (e) => {
+            thresholdValue.textContent = e.target.value;
+        });
+
+        function rotateImage(itemId) {
+            const item = loadedImages.find(i => i.id === itemId);
+            if (!item) return;
+            
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCanvas.width = item.canvas.height;
+            tempCanvas.height = item.canvas.width;
+            
+            tempCtx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+            tempCtx.rotate(Math.PI / 2);
+            tempCtx.drawImage(item.canvas, -item.canvas.width / 2, -item.canvas.height / 2);
+            
+            item.canvas.width = tempCanvas.width;
+            item.canvas.height = tempCanvas.height;
+            item.overlay.width = tempCanvas.width;
+            item.overlay.height = tempCanvas.height;
+            
+            item.ctx.clearRect(0, 0, item.canvas.width, item.canvas.height);
+            item.ctx.drawImage(tempCanvas, 0, 0);
+            
+            item.overlayCtx.clearRect(0, 0, item.overlay.width, item.overlay.height);
+            item.results.innerHTML = '';
+            item.status.textContent = 'Image rotated. Ready for detection.';
+        }
+
+        rotateBtn.addEventListener('click', () => {
+            if (loadedImages.length === 0) return;
+            // Rotate the last added image if none selected
+            rotateImage(loadedImages[loadedImages.length - 1].id);
+        });
+
+        // Gallery Functions
+        function saveGallery() {
+            localStorage.setItem('bjj_face_gallery', JSON.stringify(faceGallery));
+            renderGallery();
+        }
+
+        function renderGallery() {
+            galleryList.innerHTML = faceGallery.length === 0 ? '<p style="color: #666;">No faces registered yet</p>' : '';
+            faceGallery.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'gallery-item';
+                div.innerHTML = `
+                    <span>${item.name}</span>
+                    <button onclick="removeFromGallery(${index})">✕</button>
+                `;
+                galleryList.appendChild(div);
+            });
+        }
+
+        window.removeFromGallery = (index) => {
+            faceGallery.splice(index, 1);
+            saveGallery();
+        };
+
+        clearGalleryBtn.addEventListener('click', () => {
+            if (confirm('Clear all registered faces?')) {
+                faceGallery = [];
+                saveGallery();
+            }
+        });
+
+        window.registerFace = (itemId, faceIdx) => {
+            const item = loadedImages.find(i => i.id === itemId);
+            if (!item || !item.detections[faceIdx]) return;
+
+            const input = document.getElementById(`name-input-${itemId}-${faceIdx}`);
+            const name = input.value.trim();
+            if (!name) return alert('Please enter a name');
+            
+            const embedding = item.detections[faceIdx].descriptor;
+            if (!embedding || !Array.isArray(embedding)) {
+                return alert('Error: Face embedding is missing or invalid. Try detecting again.');
+            }
+            
+            faceGallery.push({ name, descriptor: Array.from(embedding) });
+            saveGallery();
+            input.value = '';
+            alert(`${name} registered successfully!`);
+        };
+
+        // Load models
+        async function loadModels() {
+            loadStatus.style.display = 'block';
+            loadStatus.className = 'status loading';
+            loadStatus.textContent = '⏳ Waiting for face-api.js to load...';
+
+            // Wait for face-api.js to be available
+            let retries = 0;
+            while (typeof faceapi === 'undefined' && retries < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+
+            if (typeof faceapi === 'undefined') {
+                loadStatus.className = 'status error';
+                loadStatus.textContent = '❌ Failed to load face-api.js library';
+                return;
+            }
+
+            loadStatus.textContent = '⏳ Loading face recognition models...';
+
+            try {
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri('/public/models'),
+                    faceapi.nets.faceLandmark68Net.loadFromUri('/public/models'),
+                    faceapi.nets.faceRecognitionNet.loadFromUri('/public/models'),
+                ]);
+                
+                modelsLoaded = true;
+                loadStatus.className = 'status success';
+                loadStatus.textContent = '✅ Models loaded successfully!';
+                
+                // Enable detection button if image is already loaded
+                if (loadedImages.length > 0) {
+                    detectBtn.disabled = false;
+                }
+                
+                console.log('Face recognition models loaded');
+            } catch (error) {
+                loadStatus.className = 'status error';
+                loadStatus.textContent = '❌ Failed to load models: ' + error.message;
+                console.error('Model loading error:', error);
+            }
+        }
+
+        async function addImageToUI(source) {
+            const id = 'img-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const entry = document.createElement('div');
+            entry.className = 'image-entry';
+            entry.id = `container-${id}`;
+            
+            let fileName = 'Unknown Image';
+            if (source instanceof File) fileName = source.name;
+            else if (typeof source === 'string') fileName = source.split('/').pop();
+
+            entry.innerHTML = `
+                <h3>
+                    <span>${fileName}</span>
+                    <button onclick="removeImage('${id}')" style="background: #ff5555; padding: 5px 10px; font-size: 12px;">Remove</button>
+                </h3>
+                <div class="canvas-container" id="wrapper-${id}">
+                    <canvas id="canvas-${id}"></canvas>
+                    <canvas id="overlay-${id}" style="position: absolute; left: 0; top: 0;"></canvas>
+                </div>
+                <div class="image-entry-controls">
+                    <button onclick="rotateImage('${id}')" style="background: #444; color: #fff;">Rotate 90°</button>
+                </div>
+                <div id="status-${id}" class="status" style="display: none; margin-top: 10px;"></div>
+                <div id="results-${id}" class="results"></div>
+            `;
+            
+            if (imagesContainer.innerHTML.includes('No images uploaded yet')) {
+                imagesContainer.innerHTML = '';
+            }
+            imagesContainer.appendChild(entry);
+
+            const canvas = document.getElementById(`canvas-${id}`);
+            const overlay = document.getElementById(`overlay-${id}`);
+            const ctx = canvas.getContext('2d');
+            const overlayCtx = overlay.getContext('2d');
+            const status = document.getElementById(`status-${id}`);
+            const results = document.getElementById(`results-${id}`);
+
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    overlay.width = img.width;
+                    overlay.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    loadedImages.push({
+                        id, canvas, overlay, ctx, overlayCtx, status, results, detections: []
+                    });
+                    resolve();
+                };
+                img.onerror = reject;
+                
+                if (source instanceof File) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => img.src = e.target.result;
+                    reader.readAsDataURL(source);
+                } else {
+                    img.src = source;
+                }
+            });
+        }
+
+        window.removeImage = (id) => {
+            const index = loadedImages.findIndex(i => i.id === id);
+            if (index > -1) {
+                loadedImages.splice(index, 1);
+                document.getElementById(`container-${id}`).remove();
+                if (loadedImages.length === 0) {
+                    imagesContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No images uploaded yet. Use the button above to add photos.</p>';
+                    detectBtn.disabled = true;
+                }
+            }
+        };
+
+        // Load test photos automatically
+        loadTestPhotosBtn.addEventListener('click', async () => {
+            loadStatus.style.display = 'block';
+            loadStatus.className = 'status loading';
+            loadStatus.textContent = '⏳ Loading test photos...';
+
+            const testPhotos = [
+                '/public/test-photo-1.jpg',
+                '/public/test-photo-2.jpg'
+            ];
+
+            let loaded = 0;
+            for (const photoPath of testPhotos) {
+                try {
+                    await addImageToUI(photoPath);
+                    loaded++;
+                } catch (e) {
+                    console.error('Error loading:', photoPath, e);
+                }
+            }
+
+            loadStatus.className = 'status success';
+            loadStatus.textContent = `✅ Loaded ${loaded} test photos! (Photo 1 is rotated - click Rotate if needed)`;
+            detectBtn.disabled = false;
+        });
+
+        // Load image from file input
+        imageInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            loadStatus.style.display = 'block';
+            loadStatus.className = 'status loading';
+            loadStatus.textContent = `📂 Loading ${files.length} images...`;
+
+            for (const file of files) {
+                try {
+                    await addImageToUI(file);
+                } catch (e) {
+                    console.error('Error loading file:', file.name, e);
+                }
+            }
+
+            loadStatus.className = 'status success';
+            loadStatus.textContent = `✅ Loaded ${files.length} images successfully!`;
+            detectBtn.disabled = false;
+        });
+
+        function getCosineDistance(a, b) {
+            if (!a || !b || a.length !== b.length) return 1;
+            let dotProduct = 0;
+            let normA = 0;
+            let normB = 0;
+            for (let i = 0; i < a.length; i++) {
+                dotProduct += a[i] * b[i];
+                normA += a[i] * a[i];
+                normB += b[i] * b[i];
+            }
+            if (normA === 0 || normB === 0) return 1;
+            const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+            return 1 - similarity;
+        }
+
+        function findBestDeepFaceMatch(embedding, threshold) {
+            if (faceGallery.length === 0) {
+                return { label: 'unknown', distance: 1, bestCandidate: null };
+            }
+
+            let bestMatch = { label: null, distance: Infinity };
+            
+            faceGallery.forEach(item => {
+                const dist = getCosineDistance(embedding, item.descriptor);
+                console.log(`Comparing with ${item.name}: distance = ${dist.toFixed(4)}`);
+                if (dist < bestMatch.distance) {
+                    bestMatch = { label: item.name, distance: dist };
+                }
+            });
+            
+            // Strict threshold check
+            if (bestMatch.distance < threshold) {
+                console.log(`✅ MATCH: ${bestMatch.label} (dist: ${bestMatch.distance.toFixed(4)} < threshold: ${threshold})`);
+                return bestMatch;
+            } else {
+                console.log(`❌ NO MATCH: best candidate ${bestMatch.label} (dist: ${bestMatch.distance.toFixed(4)} >= threshold: ${threshold})`);
+                return { label: 'unknown', bestCandidate: bestMatch.label, distance: bestMatch.distance };
+            }
+        }
+
+        // Detect faces
+        detectBtn.addEventListener('click', async () => {
+            if (loadedImages.length === 0) return;
+
+            const engine = engineSelect.value;
+            const threshold = parseFloat(thresholdSlider.value);
+            detectBtn.disabled = true;
+            
+            const startTime = performance.now();
+            let totalDetected = 0;
+
+            for (const item of loadedImages) {
+                item.status.style.display = 'block';
+                item.status.className = 'status loading';
+                item.status.textContent = `🔍 [${engine}] Processing...`;
+                item.results.innerHTML = '';
+                item.overlayCtx.clearRect(0, 0, item.overlay.width, item.overlay.height);
+
+                try {
+                    let detections = [];
+                    if (engine === 'deepface') {
+                        const blob = await new Promise(resolve => item.canvas.toBlob(resolve, 'image/jpeg', 0.95));
+                        const formData = new FormData();
+                        formData.append('file', blob, 'image.jpg');
+                        const response = await fetch('http://localhost:8000/analyze', { method: 'POST', body: formData });
+                        if (!response.ok) throw new Error('DeepFace server error');
+                        const data = await response.json();
+                        detections = data.faces.map(f => ({
+                            box: { x: f.box.x, y: f.box.y, width: f.box.w, height: f.box.h, score: f.confidence },
+                            descriptor: f.embedding
+                        }));
+                    } else {
+                        if (!modelsLoaded) throw new Error('Models not loaded');
+                        const browserDetections = await faceapi.detectAllFaces(item.canvas, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.35 })).withFaceLandmarks().withFaceDescriptors();
+                        detections = browserDetections.map(d => ({ box: d.detection.box, descriptor: Array.from(d.descriptor) }));
+                    }
+
+                    item.detections = detections;
+                    totalDetected += detections.length;
+
+                    let faceMatcher = null;
+                    if (faceGallery.length > 0) {
+                        const labeledDescriptors = faceGallery.map(g => new faceapi.LabeledFaceDescriptors(g.name, [new Float32Array(g.descriptor)]));
+                        faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, threshold);
+                    }
+
+                    detections.forEach((det, idx) => {
+                        const box = det.box;
+                        const faceNum = idx + 1;
+                        let label = `#${faceNum}`;
+                        let distInfo = '';
+                        let isMatch = false;
+
+                        let matchResult = null;
+                        if (engine === 'deepface') {
+                            matchResult = findBestDeepFaceMatch(det.descriptor, threshold);
+                        } else if (faceMatcher) {
+                            const match = faceMatcher.findBestMatch(new Float32Array(det.descriptor));
+                            matchResult = { 
+                                label: match.label, 
+                                distance: match.distance,
+                                bestCandidate: match.toString().split(' (')[0]
+                            };
+                        }
+
+                        if (matchResult) {
+                            if (matchResult.label !== 'unknown') {
+                                label = `#${faceNum} ${matchResult.label}`;
+                                distInfo = ` (${matchResult.distance.toFixed(3)})`;
+                                isMatch = true;
+                            } else if (matchResult.bestCandidate && matchResult.bestCandidate !== 'unknown') {
+                                label = `#${faceNum}`;
+                                distInfo = ` (best: ${matchResult.bestCandidate} @ ${matchResult.distance.toFixed(3)})`;
+                            } else {
+                                label = `#${faceNum}`;
+                                distInfo = '';
+                            }
+                        }
+
+                        // Draw box
+                        item.overlayCtx.strokeStyle = isMatch ? '#00ff00' : '#ff6600';
+                        item.overlayCtx.lineWidth = 3;
+                        item.overlayCtx.strokeRect(box.x, box.y, box.width, box.height);
+                        
+                        // Draw label
+                        item.overlayCtx.font = 'bold 14px Arial';
+                        const fullLabel = label + distInfo;
+                        const tw = item.overlayCtx.measureText(fullLabel).width;
+                        item.overlayCtx.fillStyle = isMatch ? 'rgba(0,150,0,0.9)' : 'rgba(150,50,0,0.9)';
+                        item.overlayCtx.beginPath();
+                        item.overlayCtx.roundRect(box.x, box.y - 25, tw + 10, 22, 4);
+                        item.overlayCtx.fill();
+                        item.overlayCtx.fillStyle = '#fff';
+                        item.overlayCtx.fillText(fullLabel, box.x + 5, box.y - 9);
+
+                        const card = document.createElement('div');
+                        card.className = 'face-card';
+                        card.style.borderColor = isMatch ? '#00ff00' : '#ff6600';
+                        card.innerHTML = `
+                            <div class="name" style="color: ${isMatch ? '#00ff00' : '#ff6600'}">${label}${distInfo}</div>
+                            <input type="text" id="name-input-${item.id}-${idx}" placeholder="Enter name to register...">
+                            <button onclick="registerFace('${item.id}', ${idx})">Register Face</button>
+                        `;
+                        item.results.appendChild(card);
+                    });
+
+                    const matchedCount = detections.filter((_, i) => {
+                        const mr = engine === 'deepface' 
+                            ? findBestDeepFaceMatch(detections[i].descriptor, threshold)
+                            : null;
+                        return mr && mr.label !== 'unknown';
+                    }).length;
+
+                    item.status.className = 'status success';
+                    item.status.textContent = `✅ Detected ${detections.length} faces | ${matchedCount} identified | ${detections.length - matchedCount} unknown`;
+
+                } catch (e) {
+                    item.status.className = 'status error';
+                    item.status.textContent = '❌ Error: ' + e.message;
+                }
+            }
+
+            detectBtn.disabled = false;
+            const totalTime = Math.round(performance.now() - startTime);
+            stats.innerHTML = `<strong>Final Results:</strong><br>• Total faces: ${totalDetected}<br>• Total time: ${totalTime}ms`;
+        });
+
+        // Clear
+        clearBtn.addEventListener('click', () => {
+            loadedImages = [];
+            imagesContainer.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No images uploaded yet. Use the button above to add photos.</p>';
+            stats.innerHTML = '';
+            detectBtn.disabled = true;
+            imageInput.value = '';
+            loadStatus.style.display = 'none';
+        });
+
+        // Initialize
+        renderGallery();
+        loadModels();
+    </script>
+</body>
+</html>

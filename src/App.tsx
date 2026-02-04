@@ -9,6 +9,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { AdminPage } from './pages/AdminPage';
 import AcademyPage from './pages/AcademyPage';
 import UserDetailsPage from './pages/UserDetailsPage';
+import { ClassCheckInPage } from './pages/ClassCheckInPage';
 import { AuthPage } from './pages/AuthPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { BottomNav } from './components/BottomNav';
@@ -70,6 +71,13 @@ function AppContent() {
           <Route path="/academy/:id" element={
             <ProtectedRoute>
               <AcademyPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/class-checkin" element={
+            <ProtectedRoute>
+              <AdminGuard>
+                <ClassCheckInPage />
+              </AdminGuard>
             </ProtectedRoute>
           } />
           <Route path="/auth" element={<AuthPage />} />

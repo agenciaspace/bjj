@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../contexts/LanguageContext';
-import { CheckCircle, Flame, Calendar } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import { CheckCircle, Flame, Calendar, Scan } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FaceRecognitionCheckIn } from '../components/FaceRecognitionCheckIn';
+import type { Profile } from '../types';
 
 interface CheckIn {
     id: number;
@@ -12,9 +16,13 @@ interface CheckIn {
 
 export const CheckInPage = () => {
     const { t } = useLanguage();
+    const { user } = useAuth();
     const [checkIns, setCheckIns] = useLocalStorage<CheckIn[]>('bjj-checkins', []);
     const [showSuccess, setShowSuccess] = useState(false);
     const [canCheckIn, setCanCheckIn] = useState(true);
+    const [showFaceRecognition, setShowFaceRecognition] = useState(false);
+    const [_profile, setProfile] = useState<Profile | null>(null);
+    const [faceRecognitionAvailable, setFaceRecognitionAvailable] = useState(false);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -22,6 +30,30 @@ export const CheckInPage = () => {
         const hasCheckedInToday = checkIns.some(c => c.date === today);
         setCanCheckIn(!hasCheckedInToday);
     }, [checkIns, today]);
+
+    // Fetch profile to check facial recognition status
+    useEffect(() => {
+        if (user) {
+            fetchProfile();
+        }
+    }, [user]);
+
+    const fetchProfile = async () => {
+        if (!user) return;
+
+        const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+        if (data) {
+            setProfile(data);
+            setFaceRecognitionAvailable(
+                data.face_recognition_enabled === true && !!data.face_data
+            );
+        }
+    };
 
     const handleCheckIn = () => {
         if (!canCheckIn) return;
@@ -35,6 +67,15 @@ export const CheckInPage = () => {
         };
 
         setCheckIns(prev => [newCheckIn, ...prev]);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000);
+    };
+
+    const handleFaceRecognitionSuccess = () => {
+        // Refresh check-ins from local storage
+        const updated = JSON.parse(localStorage.getItem('bjj-checkins') || '[]');
+        setCheckIns(updated);
+        setShowFaceRecognition(false);
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 2000);
     };
@@ -67,6 +108,14 @@ export const CheckInPage = () => {
 
     return (
         <div className="space-y-12 pt-8">
+            {/* Facial Recognition Modal */}
+            {showFaceRecognition && (
+                <FaceRecognitionCheckIn
+                    onSuccess={handleFaceRecognitionSuccess}
+                    onCancel={() => setShowFaceRecognition(false)}
+                />
+            )}
+
             {/* Header */}
             <div className="text-center space-y-2">
                 <h1 className="text-5xl md:text-6xl font-black tracking-[-0.02em] bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
@@ -94,6 +143,29 @@ export const CheckInPage = () => {
 
             {/* Check-in Button */}
             <div className="flex flex-col items-center gap-6">
+                {/* Facial Recognition Option */}
+                {faceRecognitionAvailable && canCheckIn && (
+                    <motion.button
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        onClick={() => setShowFaceRecognition(true)}
+                        className="w-full max-w-md px-6 py-4 bg-accent/10 hover:bg-accent/20 border-2 border-accent rounded-2xl transition-all flex items-center justify-center gap-3"
+                    >
+                        <Scan className="w-6 h-6 text-accent" />
+                        <span className="text-accent font-bold text-lg">
+                            {t('faceRecognition.useFaceRecognition')}
+                        </span>
+                    </motion.button>
+                )}
+
+                {faceRecognitionAvailable && canCheckIn && (
+                    <div className="text-muted-foreground text-sm flex items-center gap-2">
+                        <span>───────</span>
+                        <span>{t('faceRecognition.useManual').toLowerCase()}</span>
+                        <span>───────</span>
+                    </div>
+                )}
+
                 <AnimatePresence mode="wait">
                     {canCheckIn ? (
                         <motion.button

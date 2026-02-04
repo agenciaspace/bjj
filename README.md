@@ -57,6 +57,9 @@ A modern, Progressive Web App (PWA) for tracking your Brazilian Jiu-Jitsu journe
   - Authentication
   - Real-time subscriptions
   - Row Level Security
+- **Python FastAPI** - Facial recognition API
+  - DeepFace integration for face detection and recognition
+  - Deployed as serverless function on Vercel
 
 ### AI
 - **Google Gemini 1.5 Flash** - AI training suggestions

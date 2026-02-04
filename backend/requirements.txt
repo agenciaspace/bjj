@@ -1,0 +1,6 @@
+fastapi
+deepface
+uvicorn
+python-multipart
+opencv-python
+mangum

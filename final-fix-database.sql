@@ -64,6 +64,14 @@ ALTER TABLE academies
     FOREIGN KEY (owner_id) REFERENCES profiles(id) 
     ON DELETE SET NULL;
 
+-- Add main_academy to profiles
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS main_academy UUID,
+ADD CONSTRAINT fk_main_academy
+    FOREIGN KEY (main_academy)
+    REFERENCES academies(id)
+    ON DELETE SET NULL;
+
 -- Step 3: Create SIMPLE RLS Policies (No Recursion!)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE academy_members ENABLE ROW LEVEL SECURITY;

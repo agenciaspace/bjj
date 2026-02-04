@@ -36,3 +36,8 @@ diagnose-*.sql
 simple-*.sql
 update-*.sql
 force-*.sql
+
+# Python
+backend/venv/
+.vercel
+.env*.local

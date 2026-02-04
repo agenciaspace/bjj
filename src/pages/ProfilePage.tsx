@@ -2,14 +2,22 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { Trophy, Flame, Download, Upload, MapPin, Plus, Trash2, LogOut, LogIn, User, Shield, TrendingUp, Languages, Star, Camera } from 'lucide-react';
+import { Trophy, Flame, Download, Upload, MapPin, Plus, Trash2, LogOut, LogIn, User, Shield, TrendingUp, Languages, Star, Camera, Scan, Eye, Users, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { achievements } from '../data/achievements';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import type { Training, CheckIn } from '../types';
+import type { Training, CheckIn, Profile } from '../types';
 import { RoleSelector } from '../components/RoleSelector';
 import { AcademyManager } from '../components/AcademyManager';
+import { FaceEnrollment } from '../components/FaceEnrollment';
+import { 
+    extractFaceEmbedding, 
+    serializeEmbedding, 
+    encryptFaceData, 
+    isDeepFaceAvailable,
+    fileToBlob 
+} from '../lib/deepFaceService';
 
 export const ProfilePage = () => {
     const { t, language, setLanguage } = useLanguage();
@@ -27,6 +35,10 @@ export const ProfilePage = () => {
     const [newAcademy, setNewAcademy] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const avatarInputRef = useRef<HTMLInputElement>(null);
+    const [showFaceEnrollment, setShowFaceEnrollment] = useState(false);
+    const [profile, setProfile] = useState<Profile | null>(null);
+    const [enrollingFace, setEnrollingFace] = useState(false);
+    const [deepFaceAvailable, setDeepFaceAvailable] = useState(false);
 
     // Sync role with Supabase
     useEffect(() => {
@@ -36,6 +48,62 @@ export const ProfilePage = () => {
             });
         }
     }, [role, user]);
+
+    // Fetch profile for facial recognition status
+    useEffect(() => {
+        if (user) {
+            fetchProfile();
+        }
+    }, [user]);
+
+    // Check DeepFace availability
+    useEffect(() => {
+        isDeepFaceAvailable().then(setDeepFaceAvailable);
+    }, []);
+
+    const fetchProfile = async () => {
+        if (!user) return;
+
+        const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+        if (data) {
+            setProfile(data);
+        }
+    };
+
+    const handleDisableFaceRecognition = async () => {
+        if (!user) return;
+        if (!window.confirm(t('faceRecognition.deleteConfirm'))) return;
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    face_recognition_enabled: false,
+                    face_data: null,
+                    face_enrollment_date: null,
+                    face_last_updated: null
+                })
+                .eq('id', user.id);
+
+            if (error) throw error;
+
+            await fetchProfile();
+            alert(t('faceRecognition.successTitle'));
+        } catch (err) {
+            console.error('Error disabling face recognition:', err);
+            alert('Failed to disable face recognition');
+        }
+    };
+
+    const handleFaceEnrollmentComplete = () => {
+        setShowFaceEnrollment(false);
+        fetchProfile();
+    };
 
     const totalMinutes = trainings.reduce((acc, training) => acc + parseInt(training.duration || '0'), 0);
     const totalHours = Math.floor(totalMinutes / 60);
@@ -87,12 +155,6 @@ export const ProfilePage = () => {
         try {
             setUploading(true);
 
-            // Debug: Check if Supabase is configured
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            if (!supabaseUrl || supabaseUrl.includes('placeholder')) {
-                throw new Error('Supabase not configured. Please check your .env file.');
-            }
-
             if (!event.target.files || event.target.files.length === 0) {
                 throw new Error('You must select an image to upload.');
             }
@@ -123,7 +185,7 @@ export const ProfilePage = () => {
 
             setAvatarUrl(data.publicUrl);
 
-            // Update profile immediately in Supabase to avoid sync issues
+            // Update profile with avatar URL
             if (user) {
                 const { error: updateError } = await supabase.from('profiles').update({
                     avatar_url: data.publicUrl,
@@ -132,6 +194,46 @@ export const ProfilePage = () => {
 
                 if (updateError) {
                     console.error('Profile Update Error:', updateError);
+                }
+            }
+
+            // Auto-enroll face if DeepFace is available
+            if (deepFaceAvailable && user) {
+                setEnrollingFace(true);
+                try {
+                    const blob = await fileToBlob(file);
+                    const embedding = await extractFaceEmbedding(blob);
+                    
+                    if (embedding) {
+                        // Serialize and encrypt the embedding
+                        const serialized = serializeEmbedding(embedding);
+                        const encrypted = encryptFaceData(serialized);
+                        
+                        // Save to database
+                        const { error: faceError } = await supabase
+                            .from('profiles')
+                            .update({
+                                face_recognition_enabled: true,
+                                face_data: encrypted,
+                                face_enrollment_date: new Date().toISOString(),
+                                face_last_updated: new Date().toISOString()
+                            })
+                            .eq('id', user.id);
+                        
+                        if (faceError) {
+                            console.error('Face enrollment error:', faceError);
+                        } else {
+                            console.log('Face auto-enrolled from profile photo!');
+                            await fetchProfile();
+                        }
+                    } else {
+                        console.log('No face detected in profile photo');
+                    }
+                } catch (faceErr) {
+                    console.error('Face extraction failed:', faceErr);
+                    // Don't fail the upload, just skip face enrollment
+                } finally {
+                    setEnrollingFace(false);
                 }
             }
 
@@ -251,11 +353,18 @@ export const ProfilePage = () => {
                     </div>
                     <button
                         onClick={() => avatarInputRef.current?.click()}
-                        disabled={uploading}
+                        disabled={uploading || enrollingFace}
                         className="absolute bottom-0 right-0 p-2 bg-accent text-black rounded-full hover:scale-110 transition-transform shadow-lg disabled:opacity-50"
                     >
-                        <Camera className="w-4 h-4" />
+                        {uploading || enrollingFace ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Camera className="w-4 h-4" />
+                        )}
                     </button>
+                    {deepFaceAvailable && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background" title="Face recognition available" />
+                    )}
                     <input
                         type="file"
                         ref={avatarInputRef}
@@ -541,8 +650,89 @@ export const ProfilePage = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Facial Recognition Settings */}
+                    <div className="bg-white/[0.03] border border-white/[0.08] rounded-[2rem] p-6 space-y-4">
+                        <div className="flex items-center gap-3 mb-3">
+                            <Scan className="w-5 h-5 text-accent" />
+                            <h3 className="text-sm font-bold tracking-widest uppercase text-muted-foreground/80">
+                                {t('faceRecognition.settingsTitle')}
+                            </h3>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground mb-4">
+                            {t('faceRecognition.settingsDesc')}
+                        </p>
+
+                        {/* Professor/Owner: Class Check-in Link */}
+                        {(profile?.role === 'professor' || profile?.role === 'owner') && (
+                            <Link
+                                to="/class-checkin"
+                                className="block w-full py-3 px-4 rounded-xl bg-accent/10 hover:bg-accent/20 border-2 border-accent text-accent font-bold text-sm flex items-center justify-center gap-2 transition-all mb-4"
+                            >
+                                <Users className="w-4 h-4" />
+                                {t('faceRecognition.classCheckInTitle')}
+                            </Link>
+                        )}
+
+                        {profile?.face_recognition_enabled ? (
+                            <div className="space-y-4">
+                                {/* Status Card */}
+                                <div className="bg-accent/10 border border-accent/20 rounded-xl p-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <Eye className="w-5 h-5 text-accent" />
+                                        <div>
+                                            <p className="font-bold text-white text-sm">
+                                                {t('faceRecognition.enabled')}
+                                            </p>
+                                            {profile.face_enrollment_date && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {t('faceRecognition.enrolledOn')}:{' '}
+                                                    {new Date(profile.face_enrollment_date).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={() => setShowFaceEnrollment(true)}
+                                        className="w-full py-3 px-4 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-white font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Scan className="w-4 h-4" />
+                                        {t('faceRecognition.reenroll')}
+                                    </button>
+                                    <button
+                                        onClick={handleDisableFaceRecognition}
+                                        className="w-full py-3 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        {t('faceRecognition.deleteData')}
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setShowFaceEnrollment(true)}
+                                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent/90 text-black font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                            >
+                                <Scan className="w-4 h-4" />
+                                {t('faceRecognition.enable')}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {/* Face Enrollment Modal */}
+            {showFaceEnrollment && (
+                <FaceEnrollment
+                    onComplete={handleFaceEnrollmentComplete}
+                    onCancel={() => setShowFaceEnrollment(false)}
+                />
+            )}
         </div>
     );
 };

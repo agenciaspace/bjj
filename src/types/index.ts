@@ -29,6 +29,10 @@ export interface Profile {
     avatar_url?: string;
     language: string;
     role: 'student' | 'professor' | 'owner';
+    face_recognition_enabled?: boolean;
+    face_data?: string; // Encrypted face embeddings
+    face_enrollment_date?: string;
+    face_last_updated?: string;
 }
 
 export interface Academy {
@@ -45,4 +49,27 @@ export interface AcademyMember {
     user_id: string;
     status: 'pending' | 'active';
     created_at: string;
+}
+
+export interface CheckInRecord {
+    id: string;
+    user_id: string;
+    academy_id?: string;
+    check_in_date: string;
+    check_in_time: string;
+    method: 'manual' | 'face_recognition' | 'qr_code';
+    confidence_score?: number;
+    created_at: string;
+}
+
+export interface FaceDescriptor {
+    descriptor: Float32Array;
+    timestamp: number;
+}
+
+export interface FaceRecognitionConsent {
+    accepted: boolean;
+    accepted_at: string;
+    ip_address?: string;
+    user_agent?: string;
 }
