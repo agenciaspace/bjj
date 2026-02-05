@@ -210,8 +210,11 @@ app.post('/verify', upload.fields([{ name: 'img1' }, { name: 'img2' }]), async (
   }
 });
 
-// For Vercel serverless
-export default app;
+// Vercel serverless function handler
+export default (req, res) => {
+  // Set base path to empty since Vercel handles /api routing
+  return app(req, res);
+};
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
