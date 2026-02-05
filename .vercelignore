@@ -1,4 +1,5 @@
 backend/**
+api-python-old/**
 node_modules/**/.cache/**
 .git/**
 .pytest_cache/**

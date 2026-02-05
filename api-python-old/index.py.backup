@@ -1,0 +1,426 @@
+import os
+import base64
+import numpy as np
+from PIL import Image
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+import onnxruntime as ort
+from typing import List, Optional
+import uvicorn
+import shutil
+import tempfile
+import requests
+from pathlib import Path
+
+# Initialize FastAPI app
+app = FastAPI(title="BJJ Face Recognition API")
+
+# Enable CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Model paths
+MODELS_DIR = Path(__file__).parent / "models"
+DETECTOR_MODEL_PATH = MODELS_DIR / "ultra_light_detector.onnx"
+RECOGNIZER_MODEL_PATH = MODELS_DIR / "arcface_mobilenet.onnx"
+
+# Global model sessions
+face_detector = None
+face_recognizer = None
+
+def ensure_models_exist():
+    """Download models if they don't exist locally."""
+    MODELS_DIR.mkdir(exist_ok=True)
+
+    # Ultra-Light Face Detector
+    if not DETECTOR_MODEL_PATH.exists():
+        print("Downloading Ultra-Light Face Detector...")
+        url = "https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB/raw/master/weights/RFB-320.onnx"
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            with open(DETECTOR_MODEL_PATH, "wb") as f:
+                f.write(response.content)
+            print(f"Downloaded detector model: {DETECTOR_MODEL_PATH.stat().st_size / 1024 / 1024:.2f}MB")
+        except Exception as e:
+            print(f"Failed to download detector model: {e}")
+
+    # ArcFace MobileFaceNet (from ONNX model zoo)
+    if not RECOGNIZER_MODEL_PATH.exists():
+        print("Downloading ArcFace MobileFaceNet...")
+        url = "https://github.com/onnx/models/raw/main/vision/body_analysis/arcface/model/arcfaceresnet100-8.onnx"
+        try:
+            response = requests.get(url, timeout=30, allow_redirects=True)
+            response.raise_for_status()
+            with open(RECOGNIZER_MODEL_PATH, "wb") as f:
+                f.write(response.content)
+            print(f"Downloaded recognizer model: {RECOGNIZER_MODEL_PATH.stat().st_size / 1024 / 1024:.2f}MB")
+        except Exception as e:
+            print(f"Failed to download recognizer model: {e}")
+
+def initialize_models():
+    """Initialize ONNX Runtime sessions for face detection and recognition."""
+    global face_detector, face_recognizer
+
+    try:
+        ensure_models_exist()
+
+        # Load detector with CPU provider
+        if DETECTOR_MODEL_PATH.exists():
+            face_detector = ort.InferenceSession(
+                str(DETECTOR_MODEL_PATH),
+                providers=['CPUExecutionProvider']
+            )
+            print(f"Loaded face detector from {DETECTOR_MODEL_PATH}")
+
+        # Load recognizer with CPU provider
+        if RECOGNIZER_MODEL_PATH.exists():
+            face_recognizer = ort.InferenceSession(
+                str(RECOGNIZER_MODEL_PATH),
+                providers=['CPUExecutionProvider']
+            )
+            print(f"Loaded face recognizer from {RECOGNIZER_MODEL_PATH}")
+    except Exception as e:
+        print(f"Warning: Could not initialize models: {e}")
+
+def preprocess_detector_input(img):
+    """Preprocess image for Ultra-Light face detector."""
+    # img is already RGB from Pillow
+    h, w = img.shape[:2]
+
+    # Resize to 320x240 using Pillow
+    img_pil = Image.fromarray(img)
+    img_resized = img_pil.resize((320, 240), Image.BILINEAR)
+    img_array = np.array(img_resized)
+
+    # Normalize to [-1, 1]
+    img_blob = img_array.astype(np.float32) / 127.5 - 1.0
+    img_blob = np.transpose(img_blob, (2, 0, 1))
+    img_blob = np.expand_dims(img_blob, axis=0).astype(np.float32)
+
+    return img_blob, (w, h)
+
+def detect_faces_onnx(img):
+    """Detect faces using Ultra-Light ONNX model."""
+    if face_detector is None:
+        return []
+
+    try:
+        img_blob, (orig_w, orig_h) = preprocess_detector_input(img)
+
+        # Get input/output names
+        input_name = face_detector.get_inputs()[0].name
+        output_names = [o.name for o in face_detector.get_outputs()]
+
+        # Run inference
+        outputs = face_detector.run(output_names, {input_name: img_blob})
+
+        # Parse detections (Ultra-Light outputs confidences and boxes)
+        # Format varies by model - typically [scores, boxes]
+        confidences = outputs[1] if len(outputs) > 1 else outputs[0]
+        boxes = outputs[0] if len(outputs) > 1 else None
+
+        detections = []
+        if boxes is not None and len(boxes) > 0:
+            for i, score in enumerate(confidences[0]):
+                if score > 0.5:  # Confidence threshold
+                    # Scale boxes back to original image size
+                    box = boxes[0][i] if len(boxes[0]) > i else None
+                    if box is not None:
+                        x1, y1, x2, y2 = box * np.array([orig_w/320, orig_h/240, orig_w/320, orig_h/240])
+                        detections.append({
+                            'bbox': [int(x1), int(y1), int(x2), int(y2)],
+                            'confidence': float(score)
+                        })
+
+        return detections
+    except Exception as e:
+        print(f"Error in detect_faces_onnx: {e}")
+        return []
+
+def preprocess_recognizer_input(face_img):
+    """Preprocess face image for ArcFace recognition."""
+    # face_img is already RGB from Pillow
+
+    # Resize to 112x112 using Pillow
+    face_pil = Image.fromarray(face_img)
+    face_resized = face_pil.resize((112, 112), Image.BILINEAR)
+    face_array = np.array(face_resized)
+
+    # Normalize to [-1, 1]
+    face_blob = face_array.astype(np.float32) / 127.5 - 1.0
+    face_blob = np.transpose(face_blob, (2, 0, 1))
+    face_blob = np.expand_dims(face_blob, axis=0).astype(np.float32)
+
+    return face_blob
+
+def extract_embedding(face_img):
+    """Extract face embedding using ArcFace ONNX model."""
+    if face_recognizer is None:
+        return None
+
+    try:
+        face_blob = preprocess_recognizer_input(face_img)
+
+        input_name = face_recognizer.get_inputs()[0].name
+        output_name = face_recognizer.get_outputs()[0].name
+
+        embedding = face_recognizer.run([output_name], {input_name: face_blob})[0]
+        embedding = embedding[0]  # Get first (and only) result
+
+        # Normalize embedding
+        embedding = embedding / np.linalg.norm(embedding)
+
+        return embedding.tolist()
+    except Exception as e:
+        print(f"Error extracting embedding: {e}")
+        return None
+
+def cosine_distance(vec1, vec2):
+    """Compute cosine distance between two vectors using NumPy."""
+    vec1 = np.array(vec1)
+    vec2 = np.array(vec2)
+
+    # Compute dot product and norms
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+
+    # Avoid division by zero
+    if norm1 == 0 or norm2 == 0:
+        return 1.0
+
+    # Cosine similarity, then convert to distance
+    cosine_sim = dot_product / (norm1 * norm2)
+    # Clamp to [-1, 1] to avoid numerical errors
+    cosine_sim = np.clip(cosine_sim, -1.0, 1.0)
+    # Distance = 1 - similarity
+    return float(1.0 - cosine_sim)
+
+# Models will be initialized on first request (lazy loading)
+# initialize_models()  # Commented out to avoid cold start timeout
+
+def ensure_models_initialized():
+    """Ensure models are initialized before use."""
+    global face_detector, face_recognizer
+    if face_detector is None or face_recognizer is None:
+        initialize_models()
+
+@app.get("/")
+async def root():
+    try:
+        from PIL import Image as PILImage
+        import onnxruntime
+        detector_ready = face_detector is not None
+        recognizer_ready = face_recognizer is not None
+        status = "ready" if (detector_ready and recognizer_ready) else "partial" if (detector_ready or recognizer_ready) else "not initialized"
+
+        return {
+            "message": "BJJ Face Recognition API (ONNX Ultra-Light)",
+            "status": status,
+            "detector": "Ultra-Light-Fast-Generic-Face-Detector" if detector_ready else "not loaded",
+            "recognizer": "ArcFace/MobileFaceNet" if recognizer_ready else "not loaded",
+            "framework": "ONNX Runtime CPU",
+            "pillow_available": True,
+            "onnxruntime_available": True
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "message": "Error initializing"
+        }
+
+@app.post("/detect")
+async def detect_faces(file: UploadFile = File(...)):
+    """Detects all faces in an image and returns their coordinates."""
+    ensure_models_initialized()
+    if face_detector is None:
+        raise HTTPException(status_code=503, detail="Face detection model not initialized")
+
+    temp_dir = tempfile.mkdtemp()
+    try:
+        file_path = os.path.join(temp_dir, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Read image using Pillow
+        img = Image.open(file_path)
+        img = np.array(img.convert('RGB'))
+        if img is None or img.size == 0:
+            raise HTTPException(status_code=400, detail="Could not read image file")
+
+        # Detect faces
+        detections = detect_faces_onnx(img)
+
+        results = []
+        for det in detections:
+            x1, y1, x2, y2 = det['bbox']
+            results.append({
+                "box": {
+                    "x": x1,
+                    "y": y1,
+                    "w": x2 - x1,
+                    "h": y2 - y1
+                },
+                "confidence": det['confidence'],
+                "embedding": None
+            })
+
+        return {"faces": results, "count": len(results)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Detection error: {str(e)}")
+    finally:
+        shutil.rmtree(temp_dir)
+
+@app.post("/analyze")
+async def analyze_image(file: UploadFile = File(...)):
+    """Full analysis: detection + embeddings for all faces."""
+    ensure_models_initialized()
+    if face_detector is None or face_recognizer is None:
+        raise HTTPException(status_code=503, detail="Face detection or recognition model not initialized")
+
+    temp_dir = tempfile.mkdtemp()
+    try:
+        file_path = os.path.join(temp_dir, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Read image
+        img = Image.open(file_path)
+        img = np.array(img.convert('RGB'))
+        if img is None or img.size == 0:
+            raise HTTPException(status_code=400, detail="Could not read image file")
+
+        # Detect faces
+        detections = detect_faces_onnx(img)
+
+        results = []
+        for det in detections:
+            x1, y1, x2, y2 = det['bbox']
+
+            # Extract face region
+            face_img = img[max(0, y1):min(img.shape[0], y2), max(0, x1):min(img.shape[1], x2)]
+
+            if face_img.size == 0:
+                continue
+
+            # Extract embedding
+            embedding = extract_embedding(face_img)
+
+            results.append({
+                "box": {
+                    "x": x1,
+                    "y": y1,
+                    "w": x2 - x1,
+                    "h": y2 - y1
+                },
+                "confidence": det['confidence'],
+                "embedding": embedding
+            })
+
+        return {"faces": results, "count": len(results)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
+    finally:
+        shutil.rmtree(temp_dir)
+
+@app.post("/verify")
+async def verify_faces(
+    img1: UploadFile = File(...),
+    img2: UploadFile = File(...),
+    threshold: Optional[float] = 0.5
+):
+    """Verifies if two faces belong to the same person using embedding comparison."""
+    ensure_models_initialized()
+    if face_detector is None or face_recognizer is None:
+        raise HTTPException(status_code=503, detail="Face detection or recognition model not initialized")
+
+    temp_dir = tempfile.mkdtemp()
+    try:
+        p1 = os.path.join(temp_dir, "img1.jpg")
+        p2 = os.path.join(temp_dir, "img2.jpg")
+
+        with open(p1, "wb") as f:
+            shutil.copyfileobj(img1.file, f)
+        with open(p2, "wb") as f:
+            shutil.copyfileobj(img2.file, f)
+
+        # Read images
+        image1 = Image.open(p1)
+        image1 = np.array(image1.convert('RGB'))
+        image2 = Image.open(p2)
+        image2 = np.array(image2.convert('RGB'))
+
+        if image1 is None or image1.size == 0 or image2 is None or image2.size == 0:
+            raise HTTPException(status_code=400, detail="Could not read image files")
+
+        # Detect faces in both images
+        detections1 = detect_faces_onnx(image1)
+        detections2 = detect_faces_onnx(image2)
+
+        if len(detections1) == 0 or len(detections2) == 0:
+            return {
+                "verified": False,
+                "distance": 1.0,
+                "similarity": 0.0,
+                "message": "No faces detected in one or both images"
+            }
+
+        # Extract embeddings from first face of each image
+        x1_1, y1_1, x2_1, y2_1 = detections1[0]['bbox']
+        face_img1 = image1[max(0, y1_1):min(image1.shape[0], y2_1), max(0, x1_1):min(image1.shape[1], x2_1)]
+        embedding1 = extract_embedding(face_img1)
+
+        x1_2, y1_2, x2_2, y2_2 = detections2[0]['bbox']
+        face_img2 = image2[max(0, y1_2):min(image2.shape[0], y2_2), max(0, x1_2):min(image2.shape[1], x2_2)]
+        embedding2 = extract_embedding(face_img2)
+
+        if embedding1 is None or embedding2 is None:
+            return {
+                "verified": False,
+                "distance": 1.0,
+                "similarity": 0.0,
+                "message": "Could not extract embeddings from faces"
+            }
+
+        # Calculate cosine distance and similarity
+        distance = cosine_distance(embedding1, embedding2)
+        similarity = 1.0 - distance
+
+        # Default threshold: 0.5 (cosine distance)
+        # Lower distance = more similar
+        verified = distance < threshold
+
+        return {
+            "verified": bool(verified),
+            "distance": float(distance),
+            "similarity": float(similarity),
+            "threshold": threshold,
+            "face1_detected": len(detections1) > 0,
+            "face2_detected": len(detections2) > 0
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Verification error: {str(e)}")
+    finally:
+        shutil.rmtree(temp_dir)
+
+# For Vercel deployment
+import asyncio
+from mangum import Mangum
+
+# Add timeout configuration for Vercel
+handler = Mangum(app, lifespan="off")
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
